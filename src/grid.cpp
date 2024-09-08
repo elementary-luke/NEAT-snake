@@ -94,27 +94,27 @@ void Grid::update()
     if (obj_infront == Object::EMPTY || obj_infront == Object::FRUIT)
     {
         data[(int)snake.get_head_pos().x][(int)snake.get_head_pos().y] = Object::EMPTY;
-            data[(int)snake.get_head_pos().x + (int)snake.get_dir().x][(int)snake.get_head_pos().y + (int)snake.get_dir().y] = Object::HEAD;
-            
-            if (snake.get_len() > 1)
-            {
-                data[(int)snake.get_head_pos().x][(int)snake.get_head_pos().y] = Object::BODY;
-                data[(int)snake.get_tailest_pos().x][(int)snake.get_tailest_pos().y] = Object::EMPTY;
-            }
+        data[(int)snake.get_head_pos().x + (int)snake.get_dir().x][(int)snake.get_head_pos().y + (int)snake.get_dir().y] = Object::HEAD;
+        
+
+        if (snake.get_growing())
+        {
+            data[(int)snake.get_head_pos().x][(int)snake.get_head_pos().y] = Object::BODY;
             snake.insert_segment(1, snake.get_head_pos());
+            snake.set_growing(false);
+        }
+        else if (snake.get_len() > 1)
+        {
+            data[(int)snake.get_head_pos().x][(int)snake.get_head_pos().y] = Object::BODY;
+            data[(int)snake.get_tailest_pos().x][(int)snake.get_tailest_pos().y] = Object::EMPTY;
+            snake.insert_segment(1, snake.get_head_pos());
+            snake.remove_tailest();
+        }
+    
+        
 
-
-            if (snake.get_growing())
-            {
-                snake.set_growing(false);
-            }
-            else
-            {
-                snake.remove_tailest();
-            }
-
-
-            snake.move_head_forwards();
+        
+        snake.move_head_forwards();
     }
     if (obj_infront == Object::FRUIT)
     {
