@@ -77,48 +77,48 @@ void Grid::draw()
 void Grid::update()
 {
     Vector2 desire = Vector2{(float)IsKeyDown(KEY_D) - (float)IsKeyDown(KEY_A), (float)IsKeyDown(KEY_S) - (float)IsKeyDown(KEY_W)};
-    if (snake.get_dir().x == 0.0)
+    if (dir.x == 0.0)
     {
         if (desire.x != 0.0)
         {
-            snake.set_dir(Vector2{desire.x, 0.0});
+            dir = Vector2{desire.x, 0.0};
         }
     }
     else if (desire.y != 0.0)
     {
-        snake.set_dir(Vector2{0.0, desire.y});
+        dir = Vector2{0.0, desire.y};
     }
 
-    Object obj_infront = data[(int)snake.get_head_pos().x + (int)snake.get_dir().x][(int)snake.get_head_pos().y + (int)snake.get_dir().y];
+    Object obj_infront = data[(int)segments[0].x + (int)dir.x][(int)segments[0].y + (int)dir.y];
 
     if (obj_infront == Object::EMPTY || obj_infront == Object::FRUIT)
     {
-        data[(int)snake.get_head_pos().x][(int)snake.get_head_pos().y] = Object::EMPTY;
-        data[(int)snake.get_head_pos().x + (int)snake.get_dir().x][(int)snake.get_head_pos().y + (int)snake.get_dir().y] = Object::HEAD;
+        data[(int)segments[0].x][(int)segments[0].y] = Object::EMPTY;
+        data[(int)segments[0].x + (int)dir.x][(int)segments[0].y + (int)dir.y] = Object::HEAD;
         
 
-        if (snake.get_growing())
+        if (growing)
         {
-            data[(int)snake.get_head_pos().x][(int)snake.get_head_pos().y] = Object::BODY;
-            snake.insert_segment(1, snake.get_head_pos());
-            snake.set_growing(false);
+            data[(int)segments[0].x][(int)segments[0].y] = Object::BODY;
+            segments.insert(segments.begin() + 1, segments[0]);// put body where head was
+            growing = false;
         }
-        else if (snake.get_len() > 1)
+        else if (segments.size() > 1)
         {
-            data[(int)snake.get_head_pos().x][(int)snake.get_head_pos().y] = Object::BODY;
-            data[(int)snake.get_tailest_pos().x][(int)snake.get_tailest_pos().y] = Object::EMPTY;
-            snake.insert_segment(1, snake.get_head_pos());
-            snake.remove_tailest();
+            data[(int)segments[0].x][(int)segments[0].y] = Object::BODY;
+            data[(int)segments.back().x][(int)segments.back().y] = Object::EMPTY;
+            segments.insert(segments.begin() + 1, segments[0]); // put body where head was
+            segments.pop_back(); //remove last segment
         }
     
         
 
         
-        snake.move_head_forwards();
+        segments[0] = Vector2Add(segments[0], dir); //move head forward
     }
     if (obj_infront == Object::FRUIT)
     {
-        snake.set_growing(true);
+        growing = true;
         spawn_fruit();
     }
 }

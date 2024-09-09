@@ -1,5 +1,12 @@
 #pragma once
-#include "snake.h"
+
+#include <raylib.h>
+#include <iostream>
+#include <raylib.h>
+#include <raymath.h>
+#include <vector>
+
+using namespace std;
 
 
 enum Object 
@@ -15,7 +22,9 @@ class Grid
 {
     private:
         Object data[20][20];
-        Snake snake = Snake();
+        vector<Vector2> segments = {Vector2{3, 3}};
+        Vector2 dir = Vector2{1.0, 0.0};
+        bool growing = false;
 
     public:
         Grid();
