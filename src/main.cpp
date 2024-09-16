@@ -2,8 +2,9 @@
 #include <vector>
 #include <iostream>
 
-#include "ball.h"
+#include "neuron.h"
 #include "grid.h"
+#include "network.h"
 
 using namespace std;
 
@@ -18,8 +19,17 @@ int main()
     SetTargetFPS(10);
 
     Grid grid = Grid();
-    //grid.set_grid(3, 4, Object::FRUIT);
-    //grid.print_grid();
+
+    int id_count = 31;
+    Network net = Network(&id_count);
+
+    net.add_link();
+
+    for (auto link : net.links)
+    {
+        cout << link.from_id << "->" << link.to_id << endl;
+    }
+    
 
 
 
