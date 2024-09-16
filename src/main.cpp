@@ -1,10 +1,12 @@
 #include <raylib.h>
 #include <vector>
 #include <iostream>
+#include <random>
 
 #include "neuron.h"
 #include "grid.h"
 #include "network.h"
+
 
 using namespace std;
 
@@ -24,10 +26,17 @@ int main()
     Network net = Network(&id_count);
 
     net.add_link();
+    net.add_neuron();
+    
 
     for (auto link : net.links)
     {
-        cout << link.from_id << "->" << link.to_id << endl;
+        cout << link.from_id << "->" << link.to_id << " " << link.weight << endl;
+    }
+
+    for (int i=0;i<300;i++)
+    {
+        net.change_weight();
     }
     
 

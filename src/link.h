@@ -15,6 +15,7 @@ class Link
         int from_id;
         int to_id;
         int id;
-        float weight;
+        float weight = 1.0;
+        bool disabled = false;
 };
 
