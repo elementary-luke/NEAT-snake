@@ -6,7 +6,7 @@
 
 using namespace std;
 
-Grid::Grid()
+Grid::Grid(int* id_count)
 {
     for (int i = 0; i < 20; i++)
     {
@@ -15,8 +15,8 @@ Grid::Grid()
             data[i][j] = (i == 0 || j == 0 || i == 20 - 1 || j == 20 - 1) ? Object::WALL : Object::EMPTY;
         }
     }
-    data[3][3] = Object::HEAD;
     spawn_fruit();
+    data[3][3] = Object::HEAD;
 }
 
 void Grid::set_grid(int x, int y, Object val)
@@ -132,7 +132,77 @@ void Grid::spawn_fruit()
         if (data[x][y] == Object::EMPTY)
         {
             data[x][y] = Object::FRUIT;
+            fruit_pos = Vector2{(float) x, (float) y};
             return;
         }
     }
+}
+
+void Grid::set_input()
+{
+    int dirs [8][2] = {{0, -1}, {0, 1}, {-1, 0}, {1, 0}, {1, -1}, {1, 1}, {-1, 1}, {-1, -1}};
+
+    for (int i = 0; i < 8; i++)
+    {
+        int dist = 0;
+        while (true)
+        {
+            if (data[(int)segments[0].x + dirs[i][0] * dist][(int)segments[0].y + dirs[i][1] * dist] == Object::WALL)
+            {
+                brain.neurons[brain.inputs_ids[i]].activation = (float) dist / 20.0;
+                break;
+            }
+        dist++;
+        }
+    }
+
+    for (int i = 0; i < 8; i++)
+    {
+        int dist = 1;
+        while (true)
+        {
+            if (data[(int)segments[0].x + dirs[i][0] * dist][(int)segments[0].y + dirs[i][1] * dist] == Object::BODY || data[(int)segments[0].x + dirs[i][0] * dist][(int)segments[0].y + dirs[i][1] * dist] == Object::WALL)
+            {
+                brain.neurons[brain.inputs_ids[i + 8]].activation = (float) dist / 20.0;
+                break;
+            }
+        dist++;
+        }
+    }
+
+    float fdist = sqrt(pow(segments[0].x - fruit_pos.x, 2.0) + pow(segments[0].y - fruit_pos.y, 2.0));
+
+    brain.neurons[brain.inputs_ids[Inputs::FRUIT_D]].activation = fdist;
+
+    //rel would be the normalised vector so (1.0, 0) when fruit is directly east
+    float rel_x = (fruit_pos.x - segments[0].x) / fdist; 
+    float rel_y = (fruit_pos.y - segments[0].y) / fdist;
+
+    // cout << brain.neurons[brain.inputs_ids[Inputs::WALL_W]].activation << endl;
+
+    if (rel_y <= 0.0)
+    {
+        brain.neurons[brain.inputs_ids[Inputs::FRUIT_N]].activation = -rel_y;
+        brain.neurons[brain.inputs_ids[Inputs::FRUIT_S]].activation = 0.0f;
+    }
+    else 
+    {
+        brain.neurons[brain.inputs_ids[Inputs::FRUIT_S]].activation = rel_y;
+        brain.neurons[brain.inputs_ids[Inputs::FRUIT_N]].activation = 0.0f;
+    }
+    
+    if (rel_x <= 0.0)
+    {
+        brain.neurons[brain.inputs_ids[Inputs::FRUIT_W]].activation = -rel_x;
+        brain.neurons[brain.inputs_ids[Inputs::FRUIT_E]].activation = 0.0f;
+    }
+    else
+    {
+        brain.neurons[brain.inputs_ids[Inputs::FRUIT_E]].activation = rel_x;
+        brain.neurons[brain.inputs_ids[Inputs::FRUIT_W]].activation = 0.0f;
+    }
+
+    brain.neurons[brain.inputs_ids[Inputs::SIZE]].activation = segments.size();
+
+    
 }

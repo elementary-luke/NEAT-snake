@@ -10,5 +10,5 @@
 class Neuron
 {
     public:
-        float activation;
+        float activation = 0.0;
 };

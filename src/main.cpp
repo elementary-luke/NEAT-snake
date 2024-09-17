@@ -20,27 +20,13 @@ int main()
     InitWindow(screenWidth, screenHeight, "NEAT snake");
     SetTargetFPS(10);
 
-    Grid grid = Grid();
-
     int id_count = 31;
-    Network net = Network(&id_count);
 
-    net.add_link();
-    net.add_neuron();
-    
-
-    for (auto link : net.links)
-    {
-        cout << link.from_id << "->" << link.to_id << " " << link.weight << endl;
-    }
-
-    net.top_sort();
-    
-
-
+    Grid grid = Grid(&id_count);
 
     while (!WindowShouldClose())
     {
+        grid.set_input();
         BeginDrawing();
 
         grid.update();

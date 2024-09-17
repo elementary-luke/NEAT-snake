@@ -22,11 +22,52 @@ enum Mutations
     REMOVE_NEURON
 };
 
+enum Inputs
+{
+    // how far the closest wall is in each direction
+    WALL_N,
+    WALL_S,
+    WALL_W,
+    WALL_E,
+    WALL_NE,
+    WALL_SE,
+    WALL_SW,
+    WALL_NW,
+    // how far the closest body part is in each direction
+    TAIL_N,
+    TAIL_S,
+    TAIL_W,
+    TAIL_E,
+    TAIL_NE,
+    TAIL_SE,
+    TAIL_SW,
+    TAIL_NW,
+
+    // distance in each direction to the fruit
+    FRUIT_N,
+    FRUIT_S,
+    FRUIT_W,
+    FRUIT_E,
+
+    //direction snake is travelling
+    DIR_N,
+    DIR_S,
+    DIR_W,
+    DIR_E,
+    // size of the snake
+    SIZE,
+
+    //distance to fruit
+    FRUIT_D
+};
+
 class Network
 {
     public:
         map<int, Neuron> neurons;
         vector<Link> links;
+
+
 
         int inputs_ids[26];
         int output_ids[4];
@@ -240,11 +281,12 @@ class Network
         }
 
 
-        void top_sort()
+        void calc_output() // do a topological sort
         {
-            vector<int> stack;
-            map<int, vector<int>> neighbours;
-            map<int, bool> visited;
+            //TODO MAKE IT SO IT ONLY LOOKS FOR ONES THAT LINK TO THE END
+            vector<int> stack; // end order in which to visit
+            map<int, vector<int>> neighbours; // key is id of neuron, value is neurons you can go to from there
+            map<int, bool> visited; // whether a neuron of id int has been visited
             for (auto [id, _] : neurons)
             {
                 visited[id] = false;
@@ -267,7 +309,7 @@ class Network
             }); 
 
 
-            vector<int> to_visit;
+            vector<int> to_visit; // locations in order of least neighbours to most
 
             for (auto [first, _] : pairs)
             {
@@ -284,10 +326,11 @@ class Network
                 dfs(stack, neighbours, visited, id);
             }
 
-            cout <<stack.size();
             for (auto i : stack)
             {
                 cout << i << endl;
+
+                
             }
         }
 
@@ -303,5 +346,18 @@ class Network
             }
             stack.push_back(current);
             visited[current] = true;
+        }
+        
+        float sigmoid(float val)
+        {
+            return 1.0f / (1+ exp(-val));
+        }
+
+        void print_links()
+        {
+            for (auto link : links)
+            {
+                cout << link.from_id << "->" << link.to_id << " " << link.weight << endl;
+            }
         }
 };

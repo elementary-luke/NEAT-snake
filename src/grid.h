@@ -6,6 +6,9 @@
 #include <raymath.h>
 #include <vector>
 
+#include "network.h"
+
+
 using namespace std;
 
 
@@ -25,14 +28,19 @@ class Grid
         vector<Vector2> segments = {Vector2{3, 3}};
         Vector2 dir = Vector2{1.0, 0.0};
         bool growing = false;
+        int* id_count;
+        Vector2 fruit_pos;
+        Network brain = Network(id_count);
 
     public:
-        Grid();
+        Grid(int* id_count);
         void set_grid(int x, int y, Object val);
         void print_grid();
         void draw();
         void update();
         void spawn_fruit();
+        void set_input();
         // void Draw();
+        
 };
 

@@ -54,6 +54,10 @@
 		"cinttypes": "cpp",
 		"typeinfo": "cpp",
 		"istream": "cpp",
-		"iostream": "cpp"
+		"iostream": "cpp",
+		"ctime": "cpp",
+		"map": "cpp",
+		"netfwd": "cpp",
+		"ratio": "cpp"
 	}
 }
