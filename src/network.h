@@ -46,6 +46,43 @@ class Network
                 neurons[i] = Neuron();
                 output_ids[i - 26] = i;
             }
+            neurons[40] = Neuron();
+            neurons[41] = Neuron();
+            neurons[42] = Neuron();
+            neurons[43] = Neuron();
+            neurons[44] = Neuron();
+            neurons[45] = Neuron();
+
+            Link l = Link();
+            l.from_id = 45;
+            l.to_id = 40;
+            links.push_back(l);
+
+            l = Link();
+            l.from_id = 44;
+            l.to_id = 40;
+            links.push_back(l);
+
+            l = Link();
+            l.from_id = 44;
+            l.to_id = 41;
+            links.push_back(l);
+
+            l = Link();
+            l.from_id = 45;
+            l.to_id = 42;
+            links.push_back(l);
+
+            l = Link();
+            l.from_id = 42;
+            l.to_id = 43;
+            links.push_back(l);
+
+            l = Link();
+            l.from_id = 43;
+            l.to_id = 41;
+            links.push_back(l);
+
         };
 
         void add_link()
@@ -128,7 +165,6 @@ class Network
                 *outer_var = true;
             }
 
-            vector<int> neighbours;
             for (auto link : links)
             {
                 if (link.from_id == current)
@@ -178,7 +214,7 @@ class Network
             random_device rd{};
             mt19937 gen{rd()};
 
-            std::normal_distribution<float> d{0.0, 0.2}; //TODO make it start at 0.4 and go to 0.1 or even less later
+            std::normal_distribution<float> d{0.0, 0.2}; //TODO make sigma start at 0.4 and go to 0.1 or even less later
             links[GetRandomValue(0, links.size() - 1)].weight += d(gen);
         }
 
@@ -204,5 +240,68 @@ class Network
         }
 
 
+        void top_sort()
+        {
+            vector<int> stack;
+            map<int, vector<int>> neighbours;
+            map<int, bool> visited;
+            for (auto [id, _] : neurons)
+            {
+                visited[id] = false;
+                neighbours[id] = {};
+            }
 
+            for (auto link : links)
+            {
+                neighbours[link.from_id].push_back(link.to_id);
+            }
+
+            vector<pair<int, int>> pairs;
+            for (auto [key, val] : neighbours)
+            {
+                pairs.push_back({key, val.size()});
+            }
+
+            sort(pairs.begin(), pairs.end(), [](auto& a, auto& b) { 
+                return a.second < b.second; 
+            }); 
+
+
+            vector<int> to_visit;
+
+            for (auto [first, _] : pairs)
+            {
+                to_visit.push_back(first);
+            }
+            
+
+            for (auto id : to_visit)
+            {
+                if (visited[id])
+                {
+                    continue;
+                }
+                dfs(stack, neighbours, visited, id);
+            }
+
+            cout <<stack.size();
+            for (auto i : stack)
+            {
+                cout << i << endl;
+            }
+        }
+
+        void dfs(vector<int>& stack, map<int, vector<int>>& neighbours, map<int, bool>& visited, int current)
+        {
+            for (auto neighbour_id : neighbours[current])
+            {
+                if (visited[neighbour_id])
+                {
+                    continue;
+                }
+                dfs(stack, neighbours, visited, neighbour_id);
+            }
+            stack.push_back(current);
+            visited[current] = true;
+        }
 };

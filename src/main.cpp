@@ -34,10 +34,7 @@ int main()
         cout << link.from_id << "->" << link.to_id << " " << link.weight << endl;
     }
 
-    for (int i=0;i<300;i++)
-    {
-        net.change_weight();
-    }
+    net.top_sort();
     
 
 
