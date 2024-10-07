@@ -67,11 +67,11 @@ class Network
         map<int, Neuron> neurons;
         vector<Link> links;
 
-
-
         int inputs_ids[26];
         int output_ids[4];
         int* id_count;
+
+        int fitness = 0;
         
     
         Network(int* idc)
@@ -87,6 +87,7 @@ class Network
                 neurons[i] = Neuron();
                 output_ids[i - 26] = i;
             }
+            
             neurons[40] = Neuron();
             neurons[41] = Neuron();
             neurons[42] = Neuron();
@@ -94,35 +95,35 @@ class Network
             neurons[44] = Neuron();
             neurons[45] = Neuron();
 
-            Link l = Link();
-            l.from_id = 45;
-            l.to_id = 40;
-            links.push_back(l);
+            // Link l = Link();
+            // l.from_id = 45;
+            // l.to_id = 40;
+            // links.push_back(l);
 
-            l = Link();
-            l.from_id = 44;
-            l.to_id = 40;
-            links.push_back(l);
+            // l = Link();
+            // l.from_id = 44;
+            // l.to_id = 40;
+            // links.push_back(l);
 
-            l = Link();
-            l.from_id = 44;
-            l.to_id = 41;
-            links.push_back(l);
+            // l = Link();
+            // l.from_id = 44;
+            // l.to_id = 41;
+            // links.push_back(l);
 
-            l = Link();
-            l.from_id = 45;
-            l.to_id = 42;
-            links.push_back(l);
+            // l = Link();
+            // l.from_id = 45;
+            // l.to_id = 42;
+            // links.push_back(l);
 
-            l = Link();
-            l.from_id = 42;
-            l.to_id = 43;
-            links.push_back(l);
+            // l = Link();
+            // l.from_id = 42;
+            // l.to_id = 43;
+            // links.push_back(l);
 
-            l = Link();
-            l.from_id = 43;
-            l.to_id = 41;
-            links.push_back(l);
+            // l = Link();
+            // l.from_id = 43;
+            // l.to_id = 41;
+            // links.push_back(l);
 
         };
 
@@ -326,11 +327,25 @@ class Network
                 dfs(stack, neighbours, visited, id);
             }
 
-            for (auto i : stack)
+            //compute activation of each neuron based on previous neurons. Order is calculated stack.
+            for (auto id : stack)
             {
-                cout << i << endl;
+                //cout << id << endl;
 
-                
+                if (count(begin(inputs_ids), end(inputs_ids), id) == 1)
+                {
+                    continue;
+                }
+
+                float sum = 0.0;
+                for (auto link : links)
+                {
+                    if (link.to_id == id && !link.disabled)
+                    {
+                        sum += neurons[link.from_id].activation * link.weight;
+                    }
+                }
+                neurons[id].activation = sigmoid(sum);
             }
         }
 
@@ -359,5 +374,42 @@ class Network
             {
                 cout << link.from_id << "->" << link.to_id << " " << link.weight << endl;
             }
+        }
+
+        Vector2 get_desire()
+        {
+            float highest_val = -100000.0f;
+            int highest_i = -1;
+            for (int i = 0; i < 4; i++)
+            {
+                int id = output_ids[i];
+                if (neurons[id].activation > highest_val)
+                {
+                    highest_val = neurons[id].activation;
+                    highest_i = i;
+                }
+            }
+            if (neurons[output_ids[0]].activation == neurons[output_ids[1]].activation && neurons[output_ids[1]].activation == neurons[output_ids[2]].activation && neurons[output_ids[2]].activation == neurons[output_ids[3]].activation)
+            {
+                return Vector2{0.0, 0.0};
+            }
+            else if (highest_i == 0)
+            {
+                return Vector2 {0.0, -1.0};
+            }
+            else if (highest_i == 1)
+            {
+                return Vector2 {0.0, 1.0};
+            }
+            else if (highest_i == 2)
+            {
+                return Vector2 {-1.0, 0.0};
+            }
+            else if (highest_i == 3)
+            {
+                return Vector2 {1.0, 0.0};
+            }
+
+            return Vector2{0.0, 0.0};
         }
 };

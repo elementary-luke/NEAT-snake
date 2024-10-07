@@ -30,10 +30,12 @@ class Grid
         bool growing = false;
         int* id_count;
         Vector2 fruit_pos;
-        Network brain = Network(id_count);
+        
 
     public:
         Grid(int* id_count);
+        bool running = true;
+        Network brain = Network(id_count);
         void set_grid(int x, int y, Object val);
         void print_grid();
         void draw();

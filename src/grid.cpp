@@ -76,7 +76,13 @@ void Grid::draw()
 
 void Grid::update()
 {
-    Vector2 desire = Vector2{(float)IsKeyDown(KEY_D) - (float)IsKeyDown(KEY_A), (float)IsKeyDown(KEY_S) - (float)IsKeyDown(KEY_W)};
+    set_input();
+    brain.calc_output();
+    Vector2 desire = brain.get_desire();//Vector2{(float)IsKeyDown(KEY_D) - (float)IsKeyDown(KEY_A), (float)IsKeyDown(KEY_S) - (float)IsKeyDown(KEY_W)};
+
+    //cout << desire.x << " " << desire.y << endl;
+
+    
     if (dir.x == 0.0)
     {
         if (desire.x != 0.0)
@@ -90,6 +96,7 @@ void Grid::update()
     }
 
     Object obj_infront = data[(int)segments[0].x + (int)dir.x][(int)segments[0].y + (int)dir.y];
+
 
     if (obj_infront == Object::EMPTY || obj_infront == Object::FRUIT)
     {
@@ -111,11 +118,14 @@ void Grid::update()
             segments.pop_back(); //remove last segment
         }
     
-        
-
-        
         segments[0] = Vector2Add(segments[0], dir); //move head forward
     }
+    else
+    {
+        brain.fitness = segments.size();
+        running = false;
+    }
+
     if (obj_infront == Object::FRUIT)
     {
         growing = true;
@@ -125,6 +135,7 @@ void Grid::update()
 
 void Grid::spawn_fruit()
 {
+    //TODO check if the whole grid is filled
     while (true)
     {
         int x = GetRandomValue(0, 20);

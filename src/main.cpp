@@ -6,6 +6,7 @@
 #include "neuron.h"
 #include "grid.h"
 #include "network.h"
+#include "popmanager.h"
 
 
 using namespace std;
@@ -22,15 +23,36 @@ int main()
 
     int id_count = 31;
 
+    PopMan pmanager = PopMan(&id_count);
+    pmanager.add();
+
+    for (int i = 0; i < 10; i++)
+    {
+        pmanager.mutate();
+        //pmanager.test();
+        //pmanager.kill();
+        //pmanager.repopulate();
+    }
+    pmanager.mutate();
+    //pmanager.population[0].add_link();
+
     Grid grid = Grid(&id_count);
+    grid.brain = pmanager.population[0];
+
+    for (auto &network : pmanager.population)
+    {
+        cout << network.neurons.size() << "neurons" << endl;
+        if (network.links.size() > 0)
+        {
+            network.print_links();
+        }
+    }
 
     while (!WindowShouldClose())
     {
-        grid.set_input();
         BeginDrawing();
-
-        grid.update();
         ClearBackground(darkGreen);
+        grid.update();
         grid.draw();
         
 
