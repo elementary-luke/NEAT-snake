@@ -18,8 +18,6 @@ enum Mutations
 {
     ADD_LINK,
     ADD_NEURON,
-    REMOVE_LINK,
-    REMOVE_NEURON
 };
 
 enum Inputs
@@ -127,10 +125,9 @@ class Network
 
         };
 
-        void add_link()
+        void add_link(map<tuple<Mutations, int, int>, int>& mut_hist)
         {
-            //frind from and to make sure no repeats or opposites of links that already exist and no loops
-
+            //find from and to make sure no repeats or opposites of links that already exist and no loops
             vector<int> ids;
             for (auto [key, val] : neurons)
             {
@@ -187,12 +184,24 @@ class Network
                 return;
             }
 
+            tuple<Mutations, int, int> t = make_tuple(Mutations::ADD_LINK, from_id, to_id);
+
             Link link = Link();
-            link.id = *id_count;
             link.from_id = from_id;
             link.to_id = to_id;
             link.weight = (float) GetRandomValue(-1000000, 1000000) / 1000000.0f;
-            (*id_count)++;
+            
+            if (mut_hist.count(t))
+            {
+                link.id = mut_hist[t];
+            }
+            else
+            {
+                mut_hist[t] = *id_count;
+                link.id = *id_count;
+                (*id_count)++;
+            }
+
             links.push_back(link);
         }
 
@@ -216,34 +225,74 @@ class Network
             }
         }
 
-        void add_neuron()
+        void add_neuron(map<tuple<Mutations, int, int>, int>& mut_hist)
         {
-            if (links.size() == 0)
+            //neuron can only be created by splitting an enabled link
+            vector<int> enabled_link_indices;
+            for (int i = 0; i < links.size(); i++)
+            {
+                if (!links[i].disabled)
+                {
+                    enabled_link_indices.push_back(i);
+                }
+            }
+
+            if (enabled_link_indices.size() == 0)
             {
                 return;
             }
-            int index = GetRandomValue(0, links.size() - 1);
+            
+            int index = enabled_link_indices[GetRandomValue(0, enabled_link_indices.size() - 1)];
             links[index].disabled = true; // disable old link
-            
-            int neuron_id = *id_count; //new neuron between
-            neurons[*id_count] = Neuron();
-            (*id_count) ++;
-            
-            Link link1 = Link(); //new link from old from to new neuron
-            link1.from_id = links[index].from_id;
-            link1.to_id = neuron_id;
-            link1.id = *id_count;
-            link1.weight = 1.0;
-            (*id_count) ++;
-            links.push_back(link1);
 
-            Link link2 = Link(); //new link from new neuron to old to
-            link2.from_id = neuron_id;
-            link2.to_id = links[index].to_id;
-            link2.id = *id_count;
-            link2.weight =  links[index].weight;
-            (*id_count) ++;
-            links.push_back(link2);
+            tuple<Mutations, int, int> t = make_tuple(Mutations::ADD_NEURON, links[index].from_id, links[index].to_id);
+            
+            if (mut_hist.count(t))
+            {
+                int neuron_id = mut_hist[t];//new neuron between
+                neurons[neuron_id] = Neuron();
+
+                Link link1 = Link(); //new link from old from to new neuron
+                link1.from_id = links[index].from_id;
+                link1.to_id = neuron_id;
+                link1.id = neuron_id + 1;
+                link1.weight = 1.0;
+                links.push_back(link1);
+
+                Link link2 = Link(); //new link from new neuron to old to
+                link2.from_id = neuron_id;
+                link2.to_id = links[index].to_id;
+                link2.weight = links[index].weight;
+                link2.id = neuron_id + 2;
+                links.push_back(link2);
+            }
+            else
+            {
+                int neuron_id = *id_count; //new neuron between
+                neurons[neuron_id] = Neuron();
+                (*id_count) ++;
+
+                mut_hist[t] = neuron_id;
+
+                
+                Link link1 = Link(); //new link from old from to new neuron
+                link1.from_id = links[index].from_id;
+                link1.to_id = neuron_id;
+                link1.weight = 1.0;
+                link1.id = *id_count;
+                (*id_count) ++;
+                links.push_back(link1);
+                
+                
+
+                Link link2 = Link(); //new link from new neuron to old to
+                link2.from_id = neuron_id;
+                link2.to_id = links[index].to_id;
+                link2.weight = links[index].weight;
+                link2.id = *id_count;
+                (*id_count) ++;
+                links.push_back(link2);
+            }
         }
 
         void change_weight()

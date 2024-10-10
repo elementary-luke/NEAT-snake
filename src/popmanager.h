@@ -5,6 +5,8 @@
 #include <raylib.h>
 #include <raymath.h>
 #include <vector>
+#include <map>
+#include <tuple>
 
 #include "grid.h"
 #include "network.h"
@@ -30,7 +32,9 @@ class PopMan
 
         void mutate()
         {
-            for (auto &network : population)
+            map<tuple<Mutations, int, int>, int> mut_hist; //key is (type of mutation, from id, to id) val is id of the gene
+            //make it so it only does things that are possible
+            for (auto& network : population)
             {
                 int mut_num = GetRandomValue(0, 8);
                 switch (mut_num)
@@ -49,11 +53,11 @@ class PopMan
 
                     case 6:
                     case 7:
-                        network.add_link();
+                        network.add_link(mut_hist);
                         break;
 
                     case 8:
-                        network.add_neuron();
+                        network.add_neuron(mut_hist);
                         break;
 
                     // case 9:
