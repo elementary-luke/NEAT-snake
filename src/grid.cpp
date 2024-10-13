@@ -122,7 +122,7 @@ void Grid::update()
     }
     else
     {
-        brain.fitness = segments.size();
+        brain.fitness = (segments.size()) * 100;
         running = false;
     }
 

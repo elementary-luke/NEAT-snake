@@ -18,6 +18,10 @@ enum Mutations
 {
     ADD_LINK,
     ADD_NEURON,
+    TOGGLE_LINK,
+    EDIT_WEIGHT,
+    RESET_WEIGHT,
+    NONE,
 };
 
 enum Inputs
@@ -92,37 +96,6 @@ class Network
             neurons[43] = Neuron();
             neurons[44] = Neuron();
             neurons[45] = Neuron();
-
-            // Link l = Link();
-            // l.from_id = 45;
-            // l.to_id = 40;
-            // links.push_back(l);
-
-            // l = Link();
-            // l.from_id = 44;
-            // l.to_id = 40;
-            // links.push_back(l);
-
-            // l = Link();
-            // l.from_id = 44;
-            // l.to_id = 41;
-            // links.push_back(l);
-
-            // l = Link();
-            // l.from_id = 45;
-            // l.to_id = 42;
-            // links.push_back(l);
-
-            // l = Link();
-            // l.from_id = 42;
-            // l.to_id = 43;
-            // links.push_back(l);
-
-            // l = Link();
-            // l.from_id = 43;
-            // l.to_id = 41;
-            // links.push_back(l);
-
         };
 
         void add_link(map<tuple<Mutations, int, int>, int>& mut_hist)
@@ -460,5 +433,43 @@ class Network
             }
 
             return Vector2{0.0, 0.0};
+        }
+
+        void mutate(map<tuple<Mutations, int, int>, int>& mut_hist)
+        {
+            map<Mutations, int> chances;
+            chances[Mutations::ADD_NEURON] = 3;
+            chances[Mutations::ADD_LINK] = 5;
+            chances[Mutations::EDIT_WEIGHT] = 72;
+            chances[Mutations::RESET_WEIGHT] = 8;
+            chances[Mutations::NONE] = 12;
+
+            int dice = GetRandomValue(1, 100);
+
+            for (auto [k, v] : chances)
+            {
+                dice -= v;
+                if (dice <= 0)
+                {
+                    switch (k)
+                    {
+                        case Mutations::ADD_NEURON:
+                            add_neuron(mut_hist);
+                            break;
+                        case Mutations::ADD_LINK:
+                            add_link(mut_hist);
+                            break;
+                        case Mutations::EDIT_WEIGHT:
+                            change_weight();
+                            break;
+                        case Mutations::RESET_WEIGHT:
+                            reset_weight();
+                            break;
+                        case Mutations::NONE:
+                            break;
+                    }
+                }
+            }
+
         }
 };

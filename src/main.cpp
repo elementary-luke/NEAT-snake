@@ -26,15 +26,14 @@ int main()
     PopMan pmanager = PopMan(&id_count);
     pmanager.add();
 
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < 1; i++)
     {
         pmanager.mutate();
-        //pmanager.test();
-        //pmanager.kill();
-        //pmanager.repopulate();
+        pmanager.test();
+        pmanager.reproduce_and_crossover();
     }
-    pmanager.mutate();
-    //pmanager.population[0].add_link();
+    pmanager.test(); // to sort them
+    cout << pmanager.population.size();
 
     Grid grid = Grid(&id_count);
     grid.brain = pmanager.population[0];
