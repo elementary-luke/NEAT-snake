@@ -26,7 +26,7 @@ int main()
     PopMan pmanager = PopMan(&id_count);
     pmanager.add();
 
-    for (int i = 0; i < 1; i++)
+    for (int i = 0; i < 5; i++)
     {
         pmanager.mutate();
         pmanager.test();
@@ -38,14 +38,14 @@ int main()
     Grid grid = Grid(&id_count);
     grid.brain = pmanager.population[0];
 
-    for (auto &network : pmanager.population)
-    {
-        cout << network.neurons.size() << "neurons" << endl;
-        if (network.links.size() > 0)
-        {
-            network.print_links();
-        }
-    }
+    // for (auto &network : pmanager.population)
+    // {
+    //     cout << network.neurons.size() << "neurons" << endl;
+    //     if (network.links.size() > 0)
+    //     {
+    //         network.print_links();
+    //     }
+    // }
 
     while (!WindowShouldClose())
     {

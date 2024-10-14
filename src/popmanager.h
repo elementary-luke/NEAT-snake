@@ -209,7 +209,6 @@ class PopMan
                     int id2 = GetRandomValue(0, species.size() - 1);;
                     if (id1 == id2) // if the same one is chosen to be crossedover with mutate instead into the next generation
                     {
-                        cout << 444;
                         species[id1].mutate(mut_hist); //TODO put mutation function within the network class
                         population.push_back(species[id1]);
                     }

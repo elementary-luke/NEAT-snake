@@ -373,6 +373,7 @@ class Network
 
         void dfs(vector<int>& stack, map<int, vector<int>>& neighbours, map<int, bool>& visited, int current)
         {
+            int j =  neighbours.size();
             for (auto neighbour_id : neighbours[current])
             {
                 if (visited[neighbour_id])
@@ -442,7 +443,8 @@ class Network
             chances[Mutations::ADD_LINK] = 5;
             chances[Mutations::EDIT_WEIGHT] = 72;
             chances[Mutations::RESET_WEIGHT] = 8;
-            chances[Mutations::NONE] = 12;
+            chances[Mutations::TOGGLE_LINK] = 1;
+            chances[Mutations::NONE] = 11;
 
             int dice = GetRandomValue(1, 100);
 
@@ -464,6 +466,9 @@ class Network
                             break;
                         case Mutations::RESET_WEIGHT:
                             reset_weight();
+                            break;
+                        case Mutations::TOGGLE_LINK:
+                            toggle_link();
                             break;
                         case Mutations::NONE:
                             break;
