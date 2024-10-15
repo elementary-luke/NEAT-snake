@@ -68,7 +68,7 @@ class PopMan
 
                     float delta_threshold = 3.0;
 
-                    pair<int, int> network_range = make_pair(100000, -1); // (lowest, highest)
+                    pair<int, int> network_range = make_pair(INT_MAX, -1); // (lowest, highest)
                     for (auto &link : network.links)
                     {
                         if (link.id < network_range.first)
@@ -81,7 +81,7 @@ class PopMan
                         }
                     }
 
-                    pair<int, int> sr_range = make_pair(100000, -1); // speciec rep (lowest, highest)
+                    pair<int, int> sr_range = make_pair(INT_MAX, -1); // speciec rep (lowest, highest)
                     for (auto &link : species[0].links)
                     {
                         if (link.id < network_range.first)
@@ -94,11 +94,11 @@ class PopMan
                         }
                     }
                     
-                    pair<int, int> match_range = make_pair(max(network_range.first, sr_range.first), max(network_range.second, sr_range.second));
+                    pair<int, int> match_range = make_pair(max(network_range.first, sr_range.first), min(network_range.second, sr_range.second));
 
                     for (auto &link : network.links)
                     {
-                        if (has_link(species[0].links, link.id)) // if not in the other genomes link ids, must be disjoint or excess
+                        if (!has_link(species[0].links, link.id)) // if not in the other genomes link ids, must be disjoint or excess
                         {
                             if (link.id >= match_range.first && link.id <= match_range.second) // if in the match range disjoint else excess
                             {
@@ -113,7 +113,7 @@ class PopMan
 
                     for (auto &link : species[0].links)
                     {
-                        if (has_link(network.links, link.id)) // if not in the other genomes link ids, must be disjoint or excess
+                        if (!has_link(network.links, link.id)) // if not in the other genomes link ids, must be disjoint or excess
                         {
                             if (link.id >= match_range.first && link.id <= match_range.second) // if in the match range disjoint else excess
                             {
@@ -138,7 +138,8 @@ class PopMan
                             sum_w_dif += abs(link.weight - network_link_weight);
                         }
                     }
-                    avgwdif = sum_w_dif / n_matching_links;
+
+                    avgwdif = (n_matching_links > 0)? sum_w_dif / (float) n_matching_links : 1;
 
                     int N = max(network.links.size(), species[0].links.size());
 
@@ -149,7 +150,7 @@ class PopMan
 
                     float delta = (coefE * (float)n_excess) / (float)N + (coefD * (float)n_disjoint) / (float)N + coefW * avgwdif;
                     
-
+                    cout << n_excess << " " << n_disjoint << " " << sum_w_dif << "\n";
                     if (delta <= delta_threshold)
                     {
                         species.push_back(network);
@@ -165,6 +166,7 @@ class PopMan
                     species_list.push_back(vec);
                 }
             }
+            cout << species_list.size() << "\n";
             //CROSSOVER
             //TODO The champion of each species with more than five networks was copied into the next generation unchanged
 
@@ -247,7 +249,7 @@ class PopMan
                         // do disjoint and excess in the second genome
                         for (auto link : species[id2].links)
                         {
-                            if (has_link(species[id2].links, link.id))
+                            if (!has_link(species[id2].links, link.id))
                             {
                                 if (species[id2].fitness > species[id1].fitness || species[id1].fitness == species[id2].fitness && GetRandomValue(1, 2) == 1)
                                  {
@@ -255,6 +257,20 @@ class PopMan
                                  }
                             }
                         }
+                        
+                        for (auto link : offspring.links)
+                        {
+                            if (offspring.neurons.count(link.from_id) == 0)
+                            {
+                                offspring.neurons[link.from_id] = Neuron();
+                            }
+                            if (offspring.neurons.count(link.to_id) == 0)
+                            {
+                                offspring.neurons[link.to_id] = Neuron();
+                            }
+                        }
+
+                        population.push_back(offspring);
                     }
                 }
             }

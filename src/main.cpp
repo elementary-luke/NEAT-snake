@@ -26,9 +26,16 @@ int main()
     PopMan pmanager = PopMan(&id_count);
     pmanager.add();
 
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 1; i++)
     {
         pmanager.mutate();
+        for (auto &network : pmanager.population)
+        {
+            if (network.links.size() > 0)
+            {
+                network.print_links();
+            }
+        }
         pmanager.test();
         pmanager.reproduce_and_crossover();
     }
