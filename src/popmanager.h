@@ -103,6 +103,7 @@ class PopMan
                             if (link.id >= match_range.first && link.id <= match_range.second) // if in the match range disjoint else excess
                             {
                                 n_disjoint += 1;
+                                cout << "AAAAAAAAAH";
                             }
                             else
                             {
@@ -118,6 +119,7 @@ class PopMan
                             if (link.id >= match_range.first && link.id <= match_range.second) // if in the match range disjoint else excess
                             {
                                 n_disjoint += 1;
+                                cout << "AAAAAAAAAH";
                             }
                             else
                             {
@@ -139,7 +141,7 @@ class PopMan
                         }
                     }
 
-                    avgwdif = (n_matching_links > 0)? sum_w_dif / (float) n_matching_links : 1;
+                    avgwdif = (n_matching_links > 0)? sum_w_dif / (float) n_matching_links : 0.0; //make sure if no matching, weight deifference doenst come into the equation for delta
 
                     int N = max(network.links.size(), species[0].links.size());
 
@@ -149,8 +151,12 @@ class PopMan
                     }
 
                     float delta = (coefE * (float)n_excess) / (float)N + (coefD * (float)n_disjoint) / (float)N + coefW * avgwdif;
+                    if (delta != 0.0 && delta != 1.0)
+                    {
+                        //cout << "delta: "<< delta <<  "\n";
+                    }
                     
-                    cout << n_excess << " " << n_disjoint << " " << sum_w_dif << "\n";
+                    //cout << " " << n_excess << " " << n_disjoint << " " << sum_w_dif << " " << delta << "\n";
                     if (delta <= delta_threshold)
                     {
                         species.push_back(network);
@@ -166,9 +172,11 @@ class PopMan
                     species_list.push_back(vec);
                 }
             }
-            cout << species_list.size() << "\n";
+            cout << "species size!:" << species_list.size() << "\n";
+            cout << "species[0] size!:" << species_list[0].size() << "\n";
             //CROSSOVER
             //TODO The champion of each species with more than five networks was copied into the next generation unchanged
+            shuffle(begin(species_list), end(species_list), rng);
 
             float total_adjusted_fitness = 0.0; //sum of the adjusted fitnesses of the entire population
             //adjust fitness through fitness sharing, where networks in species with more genomes are decreased more
@@ -176,7 +184,7 @@ class PopMan
             {
                  for (auto &network : species)
                  {
-                    network.fitness /= species.size();
+                    network.fitness /= (float) species.size();
                     total_adjusted_fitness += network.fitness;
                  }
             }
@@ -198,8 +206,8 @@ class PopMan
                 }
 
                 //make number of offspring from a species proportional to how good it is
-                int n_offspring = ceil(species_adjusted_fitnesses / total_adjusted_fitness);
-                //cout << n_offspring;
+                int n_offspring = (int) ceil(species_adjusted_fitnesses / total_adjusted_fitness * population_size);
+                //cout << "size" << species.size() << " n_offspring: " << n_offspring;
                 for (int i = 0; i < n_offspring; i++)
                 {
                     if (population.size() >= population_size)
@@ -249,7 +257,7 @@ class PopMan
                         // do disjoint and excess in the second genome
                         for (auto link : species[id2].links)
                         {
-                            if (!has_link(species[id2].links, link.id))
+                            if (!has_link(species[id1].links, link.id))
                             {
                                 if (species[id2].fitness > species[id1].fitness || species[id1].fitness == species[id2].fitness && GetRandomValue(1, 2) == 1)
                                  {
@@ -258,7 +266,7 @@ class PopMan
                             }
                         }
                         
-                        for (auto link : offspring.links)
+                        for (auto &link : offspring.links)
                         {
                             if (offspring.neurons.count(link.from_id) == 0)
                             {
@@ -288,6 +296,10 @@ class PopMan
                     grid.update();
                 }
                 network.fitness = grid.brain.fitness;
+                // if (grid.brain.fitness != 100.0)
+                // {
+                //     cout << grid.brain.fitness;
+                // }
             }
 
             sort(population.begin(), population.end(), [](Network a, Network b) {

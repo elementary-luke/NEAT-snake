@@ -73,7 +73,7 @@ class Network
         int output_ids[4];
         int* id_count;
 
-        int fitness = 0;
+        float fitness = 0;
         
     
         Network(int* idc)
@@ -153,7 +153,7 @@ class Network
 
             if (cyclic)
             {
-                cout << "CYCLIC" <<endl;
+                //cout << "CYCLIC" <<endl;
                 return;
             }
 
@@ -439,7 +439,7 @@ class Network
         void mutate(map<tuple<Mutations, int, int>, int>& mut_hist)
         {
             map<Mutations, int> chances;
-            chances[Mutations::ADD_NEURON] = 3;
+            //chances[Mutations::ADD_LINK] = 100;
             chances[Mutations::ADD_LINK] = 5;
             chances[Mutations::EDIT_WEIGHT] = 72;
             chances[Mutations::RESET_WEIGHT] = 8;

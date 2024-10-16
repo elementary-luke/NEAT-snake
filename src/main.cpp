@@ -26,16 +26,18 @@ int main()
     PopMan pmanager = PopMan(&id_count);
     pmanager.add();
 
-    for (int i = 0; i < 1; i++)
+    for (int i = 0; i < 20; i++)
     {
+        cout << "\n" << "Generation" << i + 1 << "\n";
+        cout << "population size: " << pmanager.population.size() << "\n";
         pmanager.mutate();
-        for (auto &network : pmanager.population)
-        {
-            if (network.links.size() > 0)
-            {
-                network.print_links();
-            }
-        }
+        // for (auto &network : pmanager.population)
+        // {
+        //     if (network.links.size() > 0)
+        //     {
+        //         network.print_links();
+        //     }
+        // }
         pmanager.test();
         pmanager.reproduce_and_crossover();
     }
