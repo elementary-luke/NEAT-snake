@@ -1,7 +1,6 @@
 #include "grid.h"
 #include <raylib.h>
 #include <iostream>
-#include <raylib.h>
 #include <raymath.h>
 
 using namespace std;
@@ -16,7 +15,28 @@ Grid::Grid(int* id_count)
         }
     }
     spawn_fruit();
-    data[3][3] = Object::HEAD;
+    int x = GetRandomValue(2, 18);
+    int y = GetRandomValue(2, 18);
+    data[x][y] = Object::HEAD;
+    segments.push_back(Vector2{ (float) x, (float) y });
+
+    int choice = GetRandomValue(1, 4);
+    if (choice == 1)
+    {
+        dir = { 1.0, 0.0 };
+    }
+    else if (choice == 2)
+    {
+        dir = {-1.0, 0.0 };
+    }
+    else if (choice == 3)
+    {
+        dir = { 0.0, 1.0 };
+    }
+    else if (choice == 4)
+    {
+        dir = { 0.0, -1.0 };
+    }
 }
 
 void Grid::set_grid(int x, int y, Object val)
@@ -78,7 +98,7 @@ void Grid::update()
 {
     set_input();
     brain.calc_output();
-    Vector2 desire = brain.get_desire();//Vector2{(float)IsKeyDown(KEY_D) - (float)IsKeyDown(KEY_A), (float)IsKeyDown(KEY_S) - (float)IsKeyDown(KEY_W)};
+    Vector2 desire = brain.get_desire(); //Vector2{(float)IsKeyDown(KEY_D) - (float)IsKeyDown(KEY_A), (float)IsKeyDown(KEY_S) - (float)IsKeyDown(KEY_W)};
 
     //cout << desire.x << " " << desire.y << endl;
 
@@ -122,15 +142,24 @@ void Grid::update()
     }
     else
     {
-        brain.fitness = (segments.size()) * 100;
+        brain.fitness = (segments.size() - 1) * 1000 - 500.0;
+        brain.fitness = max(brain.fitness, 0.0f);
         running = false;
     }
 
     if (obj_infront == Object::FRUIT)
     {
+        steps_without_fruit = 0;
         growing = true;
         spawn_fruit();
     }
+    else if (steps_without_fruit >= 100)
+    {
+        brain.fitness = 0.0;
+        running = false;
+    }
+    steps_without_fruit += 1;
+    steps_lived += 1;
 }
 
 void Grid::spawn_fruit()
@@ -163,57 +192,56 @@ void Grid::set_input()
                 brain.neurons[brain.inputs_ids[i]].activation = (float) dist / 20.0;
                 break;
             }
-        dist++;
+            dist++;
         }
     }
 
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < 4; i++)
     {
         int dist = 1;
         while (true)
         {
             if (data[(int)segments[0].x + dirs[i][0] * dist][(int)segments[0].y + dirs[i][1] * dist] == Object::BODY || data[(int)segments[0].x + dirs[i][0] * dist][(int)segments[0].y + dirs[i][1] * dist] == Object::WALL)
             {
-                brain.neurons[brain.inputs_ids[i + 8]].activation = (float) dist / 20.0;
+                brain.neurons[brain.inputs_ids[Inputs::TAIL_N + i]].activation = (float) dist / 20.0;
                 break;
             }
-        dist++;
+            dist++;
         }
     }
 
     float fdist = sqrt(pow(segments[0].x - fruit_pos.x, 2.0) + pow(segments[0].y - fruit_pos.y, 2.0));
 
-    brain.neurons[brain.inputs_ids[Inputs::FRUIT_D]].activation = fdist;
+    brain.neurons[brain.inputs_ids[Inputs::FRUIT_D]].activation = fdist / 30.0f;
+    //TODO ADD DIRECTION OF SNAKE TRAVEL
 
     //rel would be the normalised vector so (1.0, 0) when fruit is directly east
-    float rel_x = (fruit_pos.x - segments[0].x) / fdist; 
-    float rel_y = (fruit_pos.y - segments[0].y) / fdist;
-
-    // cout << brain.neurons[brain.inputs_ids[Inputs::WALL_W]].activation << endl;
-
-    if (rel_y <= 0.0)
+    for (int i = 0; i < 4; i++)
     {
-        brain.neurons[brain.inputs_ids[Inputs::FRUIT_N]].activation = -rel_y;
-        brain.neurons[brain.inputs_ids[Inputs::FRUIT_S]].activation = 0.0f;
-    }
-    else 
-    {
-        brain.neurons[brain.inputs_ids[Inputs::FRUIT_S]].activation = rel_y;
-        brain.neurons[brain.inputs_ids[Inputs::FRUIT_N]].activation = 0.0f;
-    }
-    
-    if (rel_x <= 0.0)
-    {
-        brain.neurons[brain.inputs_ids[Inputs::FRUIT_W]].activation = -rel_x;
-        brain.neurons[brain.inputs_ids[Inputs::FRUIT_E]].activation = 0.0f;
-    }
-    else
-    {
-        brain.neurons[brain.inputs_ids[Inputs::FRUIT_E]].activation = rel_x;
-        brain.neurons[brain.inputs_ids[Inputs::FRUIT_W]].activation = 0.0f;
+        int dist = 1;
+        while (true)
+        {
+            if (data[(int)segments[0].x + dirs[i][0] * dist][(int)segments[0].y + dirs[i][1] * dist] == Object::FRUIT)
+            {
+                brain.neurons[brain.inputs_ids[Inputs::FRUIT_N + i]].activation = 1.0;
+                break;
+            }
+            else if (data[(int)segments[0].x + dirs[i][0] * dist][(int)segments[0].y + dirs[i][1] * dist] == Object::WALL)
+            {
+                brain.neurons[brain.inputs_ids[Inputs::FRUIT_N + i]].activation = 0.0;
+                break;
+            }
+            dist++;
+        }
     }
 
-    brain.neurons[brain.inputs_ids[Inputs::SIZE]].activation = segments.size();
+    brain.neurons[brain.inputs_ids[Inputs::SIZE]].activation = float(segments.size()) / 400.0f ;
 
+    brain.neurons[brain.inputs_ids[Inputs::DIR_N]].activation = (dir.y == -1) ? 1.0 : 0.0;
+    brain.neurons[brain.inputs_ids[Inputs::DIR_S]].activation = (dir.y == 1) ? 1.0 : 0.0;
+    brain.neurons[brain.inputs_ids[Inputs::DIR_E]].activation = (dir.x == 1) ? 1.0 : 0.0;
+    brain.neurons[brain.inputs_ids[Inputs::DIR_W]].activation = (dir.x == -1) ? 1.0 : 0.0;
+
+    //cout << brain.neurons[brain.inputs_ids[Inputs::DIR_N]].activation << endl;
     
 }

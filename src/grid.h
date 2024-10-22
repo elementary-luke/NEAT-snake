@@ -25,7 +25,7 @@ class Grid
 {
     private:
         Object data[20][20];
-        vector<Vector2> segments = {Vector2{3, 3}};
+        vector<Vector2> segments = {};
         Vector2 dir = Vector2{1.0, 0.0};
         bool growing = false;
         int* id_count;
@@ -36,6 +36,8 @@ class Grid
         Grid(int* id_count);
         bool running = true;
         Network brain = Network(id_count);
+        int steps_without_fruit = 0;
+        int steps_lived = 0;
         void set_grid(int x, int y, Object val);
         void print_grid();
         void draw();

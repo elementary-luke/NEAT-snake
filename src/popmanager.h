@@ -15,7 +15,7 @@ class PopMan
 {
     public:
         vector<Network> population;
-        map<tuple<Mutations, int, int>, int> mut_hist; // resets every generation
+        map<tuple<Mutations, int, int>, int> mut_hist; // resets every generation TODO make unordered
         int population_size = 150;
         int* id_count;
 
@@ -34,7 +34,7 @@ class PopMan
 
         void mutate()
         {
-            mut_hist.clear();
+            //mut_hist.clear();
             //key is (type of mutation, from id, to id) val is innovation id
             //make it so it only does things that are possible
             for (auto& network : population)
@@ -56,6 +56,7 @@ class PopMan
             for (auto network : population)
             {
                 bool need_new_species = true;
+                shuffle(begin(species_list), end(species_list), rng);
                 for (auto &species : species_list)
                 {
                     int n_excess = 0;
@@ -66,7 +67,7 @@ class PopMan
                     float coefD = 1.0;
                     float coefW = 0.4;
 
-                    float delta_threshold = 3.0;
+                    float delta_threshold = 2.0;
 
                     pair<int, int> network_range = make_pair(INT_MAX, -1); // (lowest, highest)
                     for (auto &link : network.links)
@@ -81,18 +82,20 @@ class PopMan
                         }
                     }
 
+
                     pair<int, int> sr_range = make_pair(INT_MAX, -1); // speciec rep (lowest, highest)
                     for (auto &link : species[0].links)
                     {
-                        if (link.id < network_range.first)
+                        if (link.id < sr_range.first)
                         {
-                            network_range.first = link.id;
+                            sr_range.first = link.id;
                         }
-                        if (link.id > network_range.second)
+                        if (link.id > sr_range.second)
                         {
-                            network_range.second = link.id;
+                            sr_range.second = link.id;
                         }
                     }
+
                     
                     pair<int, int> match_range = make_pair(max(network_range.first, sr_range.first), min(network_range.second, sr_range.second));
 
@@ -103,7 +106,6 @@ class PopMan
                             if (link.id >= match_range.first && link.id <= match_range.second) // if in the match range disjoint else excess
                             {
                                 n_disjoint += 1;
-                                cout << "AAAAAAAAAH";
                             }
                             else
                             {
@@ -119,7 +121,6 @@ class PopMan
                             if (link.id >= match_range.first && link.id <= match_range.second) // if in the match range disjoint else excess
                             {
                                 n_disjoint += 1;
-                                cout << "AAAAAAAAAH";
                             }
                             else
                             {
@@ -141,7 +142,7 @@ class PopMan
                         }
                     }
 
-                    avgwdif = (n_matching_links > 0)? sum_w_dif / (float) n_matching_links : 0.0; //make sure if no matching, weight deifference doenst come into the equation for delta
+                    avgwdif = (n_matching_links > 0)? sum_w_dif / (float) n_matching_links : 0.0; //make sure if no matching, weight difference doenst come into the equation for delta
 
                     int N = max(network.links.size(), species[0].links.size());
 
@@ -151,10 +152,10 @@ class PopMan
                     }
 
                     float delta = (coefE * (float)n_excess) / (float)N + (coefD * (float)n_disjoint) / (float)N + coefW * avgwdif;
-                    if (delta != 0.0 && delta != 1.0)
+                    /*if (delta != 0.0 && delta != 1.0)
                     {
-                        //cout << "delta: "<< delta <<  "\n";
-                    }
+                        cout << "delta: "<< delta <<  "\n";
+                    }*/
                     
                     //cout << " " << n_excess << " " << n_disjoint << " " << sum_w_dif << " " << delta << "\n";
                     if (delta <= delta_threshold)
@@ -174,8 +175,9 @@ class PopMan
             }
             cout << "species size!:" << species_list.size() << "\n";
             cout << "species[0] size!:" << species_list[0].size() << "\n";
+
+
             //CROSSOVER
-            //TODO The champion of each species with more than five networks was copied into the next generation unchanged
             shuffle(begin(species_list), end(species_list), rng);
 
             float total_adjusted_fitness = 0.0; //sum of the adjusted fitnesses of the entire population
@@ -198,6 +200,10 @@ class PopMan
                     break;
                 }
 
+                sort(species.begin(), species.end(), [](Network a, Network b) {
+                    return a.fitness > b.fitness;
+                });
+
                 float species_adjusted_fitnesses = 0.0;
                 for (auto &network : species)
                 {
@@ -206,7 +212,7 @@ class PopMan
                 }
 
                 //make number of offspring from a species proportional to how good it is
-                int n_offspring = (int) ceil(species_adjusted_fitnesses / total_adjusted_fitness * population_size);
+                int n_offspring = (int)round(species_adjusted_fitnesses / total_adjusted_fitness * population_size);
                 //cout << "size" << species.size() << " n_offspring: " << n_offspring;
                 for (int i = 0; i < n_offspring; i++)
                 {
@@ -217,9 +223,15 @@ class PopMan
 
                     int id1 = GetRandomValue(0, species.size() - 1);
                     int id2 = GetRandomValue(0, species.size() - 1);;
-                    if (id1 == id2) // if the same one is chosen to be crossedover with mutate instead into the next generation
+
+                    if (i == 0 && species.size() >= 5)
                     {
-                        species[id1].mutate(mut_hist); //TODO put mutation function within the network class
+                        //cout << "DDDD: " << species[0].fitness * species.size() << "\n";
+                        population.push_back(species[0]);
+                    }
+                    else if (id1 == id2 || GetRandomValue(1, 5) == 5) // if the same one is chosen to be crossedover with mutate instead into the next generation or just by random chance
+                    {
+                        species[id1].mutate(mut_hist);
                         population.push_back(species[id1]);
                     }
                     else
@@ -235,6 +247,8 @@ class PopMan
                                 new_link.disabled = false;
                                 new_link.from_id = link.from_id;
                                 new_link.to_id = link.to_id;
+                                new_link.id = link.id;
+                                new_link.weight = (GetRandomValue(1, 2) == 1)  ? link.weight : species[id2].links[get_index(species[id2].links, link.id)].weight; //inherit weight randomly from 1 of the parents
                                 if (link.disabled || species[id2].links[get_index(species[id2].links, link.id)].disabled)
                                 {
                                     if (GetRandomValue(1, 4) <= 3) // 3/4 chance if one of the genes is disabled, the offspring will be
@@ -247,7 +261,7 @@ class PopMan
                             else 
                             {
                                 //always inherits all disjoint and excess genes from the fitter parent. If they're the same,each has a 50% chance of being in the offspring.
-                                 if (species[id1].fitness > species[id2].fitness || species[id1].fitness == species[id2].fitness && GetRandomValue(1, 2) == 1)
+                                 if (species[id1].fitness >= species[id2].fitness)
                                  {
                                     offspring.links.push_back(link);
                                  }
@@ -259,7 +273,7 @@ class PopMan
                         {
                             if (!has_link(species[id1].links, link.id))
                             {
-                                if (species[id2].fitness > species[id1].fitness || species[id1].fitness == species[id2].fitness && GetRandomValue(1, 2) == 1)
+                                if (species[id2].fitness >= species[id1].fitness)
                                  {
                                     offspring.links.push_back(link);
                                  }
@@ -279,6 +293,7 @@ class PopMan
                         }
 
                         population.push_back(offspring);
+                        //cout << species[id1].links.size() << " " << species[id2].links.size() << " " << offspring.links.size() << "\n";
                     }
                 }
             }
@@ -289,17 +304,24 @@ class PopMan
         {
             for (auto &network : population)
             {
-                Grid grid = Grid(id_count);
-                grid.brain = network;
-                while (grid.running) //TODO make it so it cant run forever
+                int runs = 15;
+                float total = 0.0;
+                for (int i = 0; i < runs; i++)
                 {
-                    grid.update();
+                    Grid grid = Grid(id_count);
+                    grid.brain = network;
+                    while (grid.running)
+                    {
+                        grid.update();
+                    }
+                    total += grid.brain.fitness;
                 }
-                network.fitness = grid.brain.fitness;
-                // if (grid.brain.fitness != 100.0)
-                // {
-                //     cout << grid.brain.fitness;
-                // }
+                
+                network.fitness = total / (float)runs;
+                /*if (total / (float)runs > 500.0)
+                {
+                    cout << "JACKPOT!!!"  << (total / (float)runs);
+                }*/
             }
 
             sort(population.begin(), population.end(), [](Network a, Network b) {
