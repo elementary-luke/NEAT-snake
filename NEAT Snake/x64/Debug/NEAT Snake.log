@@ -1,0 +1,4 @@
+﻿  main.cpp
+C:\Users\Luke\source\repos\NEAT Snake\NEAT Snake\main.cpp(60,43): warning C4267: '+=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Luke\source\repos\NEAT Snake\NEAT Snake\main.cpp(61,47): warning C4267: '+=': conversion from 'size_t' to 'int', possible loss of data
+  NEAT Snake.vcxproj -> C:\Users\Luke\source\repos\NEAT Snake\x64\Debug\NEAT Snake.exe
